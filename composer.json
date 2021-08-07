@@ -18,11 +18,9 @@
     "autoload": {
         "classmap": [
             "DependencyBreakingTechniques"
-        ]
-    },
-    "archive": {
-        "exclude": [
-            "*/before.php"
+        ],
+        "exclude-from-classmap": [
+            "DependencyBreakingTechniques/*/before.php"
         ]
     },
     "scripts": {
