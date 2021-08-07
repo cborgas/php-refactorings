@@ -70,27 +70,3 @@ namespace App
         }
     }
 }
-
-/**
- * Here is some code that is executed at runtime
- * 
- * Be careful not to break it...
- */
-namespace Runtime
-{
-    use App;
-
-    $pageLayout = new App\PageLayout(
-        1,
-        [
-            new App\Style('first style'),
-            new App\Style('second style')
-        ],
-        new App\DefaultStyleTemplate()
-    );
-
-    $pageLayout->rebindStyles();
-
-    assert("This" === $pageLayout->getStyles()[0]->getName());
-    assert("That" === $pageLayout->getStyles()[1]->getName());
-}

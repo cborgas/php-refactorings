@@ -7,6 +7,7 @@
     <testsuites>
         <testsuite name="DependencyBreakingTechniques">
             <directory suffix="after.php">DependencyBreakingTechniques/*</directory>
+            <directory suffix="runtime.php">DependencyBreakingTechniques/*</directory>
         </testsuite>
     </testsuites>
 </phpunit>
