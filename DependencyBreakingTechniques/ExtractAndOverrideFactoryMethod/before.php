@@ -1,26 +1,5 @@
 <?php
 
-namespace Library
-{
-    class DBConnection
-    {
-        // ...
-
-        public function executeCommand(string $query): void
-        {
-            // ...
-        }
-
-        public function executeQuery(string $query): array
-        {
-            // ...
-
-            // This would return query results
-            return [];
-        }
-    }
-}
-
 namespace App
 {
     class User
@@ -111,6 +90,27 @@ namespace App
             $payment = new Payment($fromUser, $toUser, $cents);
 
             $this->ledger->lodge($payment);
+        }
+    }
+}
+
+namespace Library
+{
+    class DBConnection
+    {
+        // ...
+
+        public function executeCommand(string $query): void
+        {
+            // ...
+        }
+
+        public function executeQuery(string $query): array
+        {
+            // ...
+
+            // This would return query results
+            return [];
         }
     }
 }
