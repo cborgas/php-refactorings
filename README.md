@@ -6,3 +6,10 @@ A collection of refactoring examples in PHP
 ### [Dependecy Breaking Techniques](DependencyBreakingTechniques)
 
 - [Extract and Override Call](DependencyBreakingTechniques/ExtractAndOverrideCall)
+
+### About
+
+- Each example has a `before.php` and an `after.php` to show the change of the refactoring.
+- `// ...` represents some other random amount of code that could be present in a real project.
+- Each `.php` file will contain multiple namespaces for ease of understanding. 
+- This project does not comply with [PSR-4](https://www.php-fig.org/psr/psr-4/) standards.
