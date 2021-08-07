@@ -114,26 +114,3 @@ namespace App
         }
     }
 }
-
-/**
- * Here is some code that is executed at runtime
- * 
- * Be careful not to break it...
- */
-namespace Runtime
-{
-    use App;
-
-    class PaymentGateway extends App\PaymentGateway
-    {
-        public function getLedger(): App\PaymentLedger { return $this->ledger; }
-    }
-
-    $paymentGateway = new PaymentGateway();
-    $paymentGateway->makePayment('Me', 'You', 100); // $1.00 from me to you
-
-    $lodgedPayment = $paymentGateway->getLedger()->getPayment(0);
-    assert('Me' === $lodgedPayment->getPayer()->getName());
-    assert('You' === $lodgedPayment->getPayee()->getName());
-    assert(100 === $lodgedPayment->getCents());
-}
