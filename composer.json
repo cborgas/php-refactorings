@@ -1,5 +1,5 @@
 {
-    "name": "carl.borgas/php-refactorings",
+    "name": "cborgas/php-refactorings",
     "description": "A collection of refactoring examples in PHP",
     "type": "library",
     "license": "MIT",
