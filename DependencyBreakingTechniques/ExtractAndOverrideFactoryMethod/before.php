@@ -91,6 +91,13 @@ namespace App
             $this->ledger = new PaymentLedger($dbConnection);
         }
 
+        /**
+         * Challenge:
+         * - Add a currency argument to this method with an appropriate test.
+         * - Do not use the UserRepository or PaymentLedger to test this class (that would
+         *   take far too long to setup!!)
+         * - The currency in use before this change was AUD.
+         */
         public function makePayment(
             string $fromName,
             string $toName,
