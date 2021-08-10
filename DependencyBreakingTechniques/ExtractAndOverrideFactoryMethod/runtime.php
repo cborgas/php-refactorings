@@ -9,10 +9,12 @@ declare(strict_types=1);
  */
 namespace Runtime
 {
-    // !! @todo Remove this when after.php is created
-    require_once 'before.php';
-
+    if (!file_exists(__DIR__ . '/after.php')) {
+        require_once 'before.php';
+    }
+    
     use App;
+    use Library;
     use PHPUnit\Framework\TestCase;
 
     class PaymentGateway extends App\PaymentGateway
@@ -33,6 +35,19 @@ namespace Runtime
             $this->assertEquals('Me', $lodgedPayment->getPayer()->getName());
             $this->assertEquals('You', $lodgedPayment->getPayee()->getName());
             $this->assertEquals(100, $lodgedPayment->getCents());
+        }
+
+        /**
+         * @test
+         * @doesNotPerformAssertions
+         */
+        public function signaturesArePreserved(): void
+        {
+            $dbConnection = new Library\DBConnection();
+            new App\UserRepository($dbConnection);
+            new App\PaymentLedger($dbConnection);
+            new App\Payment(new App\User(''), new App\User(''), 0);
+            new App\PaymentGateway();
         }
     }
 }
