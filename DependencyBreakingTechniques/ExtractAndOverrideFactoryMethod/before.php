@@ -60,7 +60,7 @@ namespace App
 
     class PaymentGateway
     {
-        // Must preserve signature
+        // Constraint: Must preserve signature
         public function __construct()
         {
             /**
