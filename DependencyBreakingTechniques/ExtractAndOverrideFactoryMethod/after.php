@@ -31,12 +31,14 @@ namespace App
         public function __construct(
             private User $payer,
             private User $payee,
-            private int $cents
+            private int $cents,
+            private string $currency = 'AUD'
         ) {}
 
         public function getPayer(): User { return $this->payer; }
         public function getPayee(): User { return $this->payee; }
         public function getCents(): int { return $this->cents; }
+        public function getCurrency(): string { return $this->currency; }
     }
 
     class PaymentLedger
@@ -60,18 +62,20 @@ namespace App
 
     class PaymentGateway
     {
-        private PaymentLedger $ledger;
-        private UserRepository $userRepository;
+        protected PaymentLedger $ledger;
+        protected UserRepository $userRepository;
 
         // Constraint: Must preserve signature
         public function __construct()
         {
-            /**
-             * This hard-coded initialization inside the constructor is the 
-             * issue we're trying to solve
-             */
+            $this->setUp();
+        }
+
+        // This is our refactoring "scar"
+        protected function setUp(): void
+        {
             $dbConnection = new \Library\DBConnection();
-            $this->repository = new UserRepository($dbConnection);
+            $this->userRepository = new UserRepository($dbConnection);
             $this->ledger = new PaymentLedger($dbConnection);
         }
 
@@ -85,14 +89,15 @@ namespace App
         public function makePayment(
             string $fromName,
             string $toName,
-            int $cents
+            int $cents,
+            string $currency = 'AUD'
         ): void {
             // ...
 
             $fromUser = $this->userRepository->findByName($fromName);
             $toUser = $this->userRepository->findByName($toName);
 
-            $payment = new Payment($fromUser, $toUser, $cents);
+            $payment = new Payment($fromUser, $toUser, $cents, $currency);
 
             $this->ledger->lodge($payment);
         }
@@ -116,6 +121,63 @@ namespace Library
 
             // This would return query results
             return [];
+        }
+    }
+}
+
+namespace Test
+{
+    use App;
+    use PHPUnit\Framework\TestCase;
+    use PHPUnit\Framework\MockObject\MockObject;
+
+    class PaymentGateway extends App\PaymentGateway
+    {
+        // Allow us to override the $userRespository property
+        public function setRepository(App\UserRepository $userRepository): void
+        {
+            $this->userRepository = $userRepository;
+        }
+
+        // Allow us to override the $ledger property
+        public function setPaymentLedger(App\PaymentLedger $paymentLedger): void
+        {
+            $this->ledger = $paymentLedger;
+        }
+
+        protected function setUp(): void
+        {
+            // null method
+            // This will stop the instantiation of the concrete PaymentLedger and UserRespository
+        }
+    }
+
+    class PaymentGatewayTest extends TestCase
+    {
+        private PaymentGateway $paymentGateway;
+        private App\PaymentLedger|MockObject $paymentLedger;
+
+        public function setUp(): void
+        {
+            $this->paymentGateway = new PaymentGateway();
+            $this->paymentLedger = $this->createMock(App\PaymentLedger::class);
+            $this->userRepository = $this->createMock(App\UserRepository::class);
+            $this->paymentGateway->setPaymentLedger($this->paymentLedger);
+            $this->paymentGateway->setRepository($this->userRepository);
+        }
+
+        /** @test */
+        public function canMakePaymentWithCurrency(): void
+        {
+            $this->paymentLedger
+                ->expects($this->once())
+                ->method('lodge')
+                ->will($this->returnCallback(
+                    fn (App\Payment $payment) => $this->assertEquals('WON', $payment->getCurrency())
+                )
+            );
+
+            $this->paymentGateway->makePayment('Me', 'You', 70, 'WON');
         }
     }
 }
