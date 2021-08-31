@@ -191,7 +191,23 @@ namespace Test
          * @test
          * @doesNotPerformAssertions
          */
-        public function canRequestAddMemberships(): void
+        public function canRequestAddMembershipsForFrontDesk(): void
+        {
+            $frontDesk = new FrontDesk(
+                $this->createMock(CustomerRepository::class),
+                $this->createMock(WelcomeMessageSender::class)
+            );
+            $controller = new Controller($frontDesk);
+            $request = $this->createMock(RequestInterface::class);
+            $request->method('getBody')->willReturn(['customerEmails' => []]);
+            $controller->addMemberships($request);
+        }
+
+        /**
+         * @test
+         * @doesNotPerformAssertions
+         */
+        public function canRequestAddMembershipsForLoggingFrontDesk(): void
         {
             $frontDesk = new LoggingFrontDesk(
                 $this->createMock(CustomerRepository::class),
