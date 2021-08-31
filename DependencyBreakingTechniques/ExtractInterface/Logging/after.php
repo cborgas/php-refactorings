@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App
 {
     use Psr\Http\Message\RequestInterface;
+    use Psr\Log\LoggerInterface;
     use RuntimeException;
 
     class Customer
@@ -40,11 +41,19 @@ namespace App
         }
     }
 
-    class FrontDesk
+    interface FrontDeskInterface
+    {
+        /**
+         * @param string[] $emailAddresses
+         */
+        public function addMemberships(array $emailAddresses): void;
+    }
+
+    class FrontDesk implements FrontDeskInterface
     {
         public function __construct(
-            private CustomerRepository $customerRepository,
-            private WelcomeMessageSender $welcomeMessageSender
+            protected CustomerRepository $customerRepository,
+            protected WelcomeMessageSender $welcomeMessageSender
         ) {}
 
         /**
@@ -52,9 +61,7 @@ namespace App
          */
         public function addMemberships(array $emailAddresses): void
         {
-            $customers = $this->customerRepository->getCustomersByEmailAddresses(
-                $emailAddresses
-            );
+            $customers = $this->getCustomers($emailAddresses);
 
             $previousCustomers = [];
             $newCustomers = [];
@@ -82,27 +89,80 @@ namespace App
          * @param Customer $customer
          * @throws RuntimeException
          */
-        private function addMembership(Customer $customer): void
+        protected function addMembership(Customer $customer): void
         {
             // ...
         }
 
-        private function renewMembership(Customer $customer): void
+        protected function renewMembership(Customer $customer): void
         {
             // ...
         }
 
-        private function hadMembership(Customer $customer): bool
+        protected function hadMembership(Customer $customer): bool
         {
             // ...
 
             return false;
         }
+        
+        protected function getCustomers(array $emailAddresses): array
+        {
+            return $this->customerRepository->getCustomersByEmailAddresses(
+                $emailAddresses
+            );
+        }
+    }
+
+    class LoggingFrontDesk extends FrontDesk implements FrontDeskInterface
+    {
+        public function __construct(
+            CustomerRepository $customerRepository,
+            WelcomeMessageSender $welcomeMessageSender,
+            private LoggerInterface $logger
+        ) {
+            parent::__construct($customerRepository, $welcomeMessageSender);
+        }
+
+        public function addMemberships(array $emailAddresses): void
+        {
+            $this->logger->debug(sprintf('Adding memberships for %s', implode(', ', $emailAddresses)));
+            parent::addMemberships($emailAddresses);
+        }
+
+        protected function addMembership(Customer $customer): void
+        {
+            $this->logger->debug(sprintf('Adding membership for %s', $customer->getName()));
+            try {
+                parent::addMembership($customer);
+                $this->logger->debug(sprintf('Membership added for %s', $customer->getName()));
+            } catch (RuntimeException $exception) {
+                $this->logger->error(
+                    sprintf('Failed to add membership for %s', $customer->getName()),
+                    [
+                        'exception' => $exception
+                    ]
+                );
+            }
+        }
+
+        protected function renewMembership(Customer $customer): void
+        {
+            $this->logger->debug(sprintf('Renewing membership for %s', $customer->getName()));
+            parent::renewMembership($customer);
+        }
+
+        protected function getCustomers(array $emailAddresses): array
+        {
+            $customers = parent::getCustomers($emailAddresses);
+            $this->logger->debug(sprintf('Found %s customers', count($customers)));
+            return $customers;
+        }
     }
 
     class Controller
     {
-        public function __construct(private FrontDesk $frontDesk)
+        public function __construct(private FrontDeskInterface $frontDesk)
         {
         }
 
@@ -119,9 +179,11 @@ namespace Test
     use App\Controller;
     use App\CustomerRepository;
     use App\FrontDesk;
+    use App\LoggingFrontDesk;
     use App\WelcomeMessageSender;
     use PHPUnit\Framework\TestCase;
     use Psr\Http\Message\RequestInterface;
+    use Psr\Log\LoggerInterface;
 
     class ControllerTest extends TestCase
     {
@@ -131,9 +193,10 @@ namespace Test
          */
         public function canRequestAddMemberships(): void
         {
-            $frontDesk = new FrontDesk(
+            $frontDesk = new LoggingFrontDesk(
                 $this->createMock(CustomerRepository::class),
-                $this->createMock(WelcomeMessageSender::class)
+                $this->createMock(WelcomeMessageSender::class),
+                $this->createMock(LoggerInterface::class)
             );
             $controller = new Controller($frontDesk);
             $request = $this->createMock(RequestInterface::class);
