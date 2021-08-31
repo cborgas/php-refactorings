@@ -7,6 +7,7 @@ A collection of refactoring examples in PHP
 
 - [Extract and Override Call](DependencyBreakingTechniques/ExtractAndOverrideCall)
 - [Extract and Override Factory Method](DependencyBreakingTechniques/ExtractAndOverrideFactoryMethod)
+- [Extract Interface](DependencyBreakingTechniques/ExtractInterface)
 
 ### About
 
