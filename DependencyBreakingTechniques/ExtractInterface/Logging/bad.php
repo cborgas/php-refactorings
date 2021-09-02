@@ -87,6 +87,7 @@ namespace App\ExtractInterface\Bad
                             'exception' => $exception
                         ]
                     );
+                    throw $exception;
                 }
             }
 
