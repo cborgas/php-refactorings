@@ -171,7 +171,7 @@ namespace WrapClass\App
 
         public function hadMembership(Customer $customer): bool
         {
-            $this->customerMembershipManager->hadMembership($customer);
+            return $this->customerMembershipManager->hadMembership($customer);
         }
     }
 
